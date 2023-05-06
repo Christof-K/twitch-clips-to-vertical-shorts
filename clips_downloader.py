@@ -2,9 +2,12 @@ import os
 import requests
 from datetime import datetime, timedelta
 from clip_storage import store_clip_data,clip_exists
+from dotenv import load_dotenv
+load_dotenv();
 
 MAX_CLIPS_PER_REQUEST = 100
-CLIENT_ID = "1a7upfme0ykcfa8ub492mk9eqmwojc"
+CLIENT_ID = os.environ.get('CLIENT_ID')
+
 TOKEN = "Bearer 78zsr8l62p4u80u61b9slre9io4rzt"
 
 def get_clips_page(broadcaster_id, after=None):

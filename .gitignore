@@ -3,3 +3,4 @@ converted
 temp
 .venv
 __pycache__
+.env
