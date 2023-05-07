@@ -1,9 +1,11 @@
 import os
 from moviepy.editor import *
 from moviepy.video.fx.all import rotate
-from clip_storage import set_converted, get_clips_to_convert, Clip
+from storage.clip_storage import set_converted, get_clips_to_convert, Clip
+from dotenv import load_dotenv
+load_dotenv();
 
-channel_name = "~Twitch Digest~"
+channel_name = os.environ.get('YT_CHANNEL_NAME')
 converted_folder = "converted"
 temp_folder = "temp"
 max_height = 1080
