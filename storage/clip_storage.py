@@ -4,9 +4,21 @@ from mongo_connector import CLIPS
 
 
 class Clip(NamedTuple):
+    id: str
     broadcaster_name: str
-    clip_id: str
-    clip_duration: float
+    duration: float
+    url: str
+    broadcaster_id: str
+    creator_id: str
+    creator_name: str
+    video_id: str
+    game_id: str
+    embed_url: str
+    view_count: str
+    language: str
+    title: str
+    created_at: str
+    vod_offset: int
     download_path: str = ""
     converted_path: str = ""
     converted: int = 0
@@ -16,9 +28,7 @@ class Clip(NamedTuple):
 
 def store_clip_data(clip, downlad_file_name: string):
     clip_data = {
-        "broadcaster_name": clip["broadcaster_name"],
-        "clip_id": clip["id"],
-        "clip_duration": clip["duration"],
+        **clip,
         "download_path": downlad_file_name,
         "converted_path": "",
         "converted": 0,
@@ -28,23 +38,24 @@ def store_clip_data(clip, downlad_file_name: string):
     }
     CLIPS.insert_one(clip_data)
 
+def _clip_parser(clip_dict):
+  return {k: v for k, v in clip_dict.items() if k in Clip._fields}
 
 def get_clips_to_convert() -> List[Clip]:
     clips = []
     query = {"error": 0, "archived": 0, "converted": 0}
     cursor = CLIPS.find(query)
     for c in cursor:
-        c.pop('_id', None)
-        clip_obj = Clip(**c)
+        clip_obj = Clip(**_clip_parser(c))
         clips.append(clip_obj)
     return clips
 
 def clip_exists(clip_id: string):
-  return CLIPS.find_one({"clip_id": clip_id}) is not None
+  return CLIPS.find_one({"id": clip_id}) is not None
 
 def set_converted(clip: Clip, output_path: string):
   CLIPS.update_one(
-    {"clip_id": clip.clip_id},
+    {"id": clip.id},
     {"$set": {
       "converted": 1,
       "converted_path": output_path
@@ -53,18 +64,18 @@ def set_converted(clip: Clip, output_path: string):
 
 def set_uploaded(clip_id: string):
   CLIPS.update_one(
-     {"clip_id": clip_id},
+     {"id": clip_id},
      {"$set": {"uploaded": 1}}
   )
 
 def set_error(clip_id: string):
   CLIPS.update_one(
-     {"clip_id": clip_id},
+     {"id": clip_id},
      {"$set": {"error": 1}}
   )
 
 def set_archived(clip_id: string):
   CLIPS.update_one(
-     {"clip_id": clip_id},
+     {"id": clip_id},
      {"$set": {"archived": 1}}
   )

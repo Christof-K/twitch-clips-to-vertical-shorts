@@ -12,8 +12,8 @@ max_height = 1080
 
 def convert_to_vertical(clip: Clip):
 
-    output_path = os.path.join(converted_folder, f'vertical_{clip.clip_id}.mp4')
-    audio_output = os.path.join(temp_folder, f'sound_vertical_{clip.clip_id}.mp4')
+    output_path = os.path.join(converted_folder, f'vertical_{clip.id}.mp4')
+    audio_output = os.path.join(temp_folder, f'sound_vertical_{clip.id}.mp4')
     video_clip = VideoFileClip(clip.download_path, target_resolution=(607, 1080))
     black_bar = ColorClip((1080, 1920), color=[0, 0, 0], duration=video_clip.duration)
 
@@ -51,5 +51,5 @@ _clips = get_clips_to_convert()
 if not _clips:
     print('No clips to convert')
 for clip in _clips:
-    print(f'Converting {clip.clip_id} to 9:16 aspect ratio')
+    print(f'Converting {clip.id} to 9:16 aspect ratio')
     convert_to_vertical(clip)
