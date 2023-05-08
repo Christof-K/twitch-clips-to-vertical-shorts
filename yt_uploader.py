@@ -1,4 +1,6 @@
-import google_auth_oauthlib.flow
+import json
+from typing import NamedTuple,List
+import google_auth_oauthlib
 import googleapiclient.discovery
 import googleapiclient.errors
 from google.auth.transport.requests import Request
@@ -6,33 +8,61 @@ from google.oauth2.credentials import Credentials
 from mongo_connector import YT_TOKENS
 from storage.clip_storage import Clip, get_clips_to_upload, set_uploaded
 
+
+class DbTokenInfo(NamedTuple):
+    access_token: str
+    refresh_token: str
+    scope: List[str]
+    token_type: str
+    expires_in: int
+    expires_at: float
+
+def getCredentailObjectFromTokenInfo(tokenInfo: DbTokenInfo) -> Credentials:
+    yt_secrets = json.load(open("yt_secrets.json", "r"))
+    return Credentials.from_authorized_user_info(info={
+        **tokenInfo._asdict(),
+        "client_id": yt_secrets["installed"]["client_id"],
+        "client_secret": yt_secrets["installed"]["client_secret"]
+    })
+
+def updateDbToken(tokenInfo: DbTokenInfo):
+    YT_TOKENS.update_one(
+        {"_id": "token"},
+        {"$set": {"credentials": tokenInfo}},
+        upsert=True
+    )
+
 def authenticate():
     scopes = ["https://www.googleapis.com/auth/youtube.upload"]
-    creds = None
+    credentials = None
 
-    # Try to find the token document in the MongoDB collection
+    # Load the stored credentials from MongoDB
     token_doc = YT_TOKENS.find_one({"_id": "token"})
+    dbTokenInfo = DbTokenInfo(**token_doc['credentials'])
 
     if token_doc:
-        # Load the stored credentials from MongoDB
-        creds = Credentials.from_authorized_user_info(info=token_doc['credentials'])
+        credentials = getCredentailObjectFromTokenInfo(dbTokenInfo)
 
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+    if not credentials or not credentials.valid:
+        print('token not valid')
+
+        # refresh token
+        if credentials and credentials.expired and credentials.refresh_token:
+            print('token expired - refreshing...')
+            credentials.refresh(Request())
+            updateDbToken(dbTokenInfo._replace(refresh_token=credentials.refresh_token))#todo: expiry update
+        # get fresh token
         else:
             flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-                "yt_secrets.json", scopes)
-            creds = flow.run_local_server(port=0)
+                "yt_secrets.json", scopes, redirect_uri="http://localhost")
+            auth_url, _ = flow.authorization_url(prompt='consent')
+            print('Please go to this URL and authorize the application:', auth_url)
+            code = input('Enter the authorization code: ')
+            tokenInfo = flow.fetch_token(code=code)
+            credentials = getCredentailObjectFromTokenInfo(tokenInfo)
+            updateDbToken(DbTokenInfo(**tokenInfo))
 
-        # Update or insert the new credentials into MongoDB
-        YT_TOKENS.update_one(
-            {"_id": "token"},
-            {"$set": {"credentials": creds.to_json()}},
-            upsert=True
-        )
-
-    return creds
+    return credentials
 
 
 def upload_clip(clip: Clip):

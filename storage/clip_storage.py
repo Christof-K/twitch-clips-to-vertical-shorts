@@ -50,6 +50,15 @@ def get_clips_to_convert() -> List[Clip]:
         clips.append(clip_obj)
     return clips
 
+def get_clips_to_upload() -> List[Clip]:
+    clips = []
+    query = {"error": 0, "archived": 0, "converted": 1, "uploaded": 0}
+    cursor = CLIPS.find(query)
+    for c in cursor:
+        clip_obj = Clip(**_clip_parser(c))
+        clips.append(clip_obj)
+    return clips
+
 def clip_exists(clip_id: string):
   return CLIPS.find_one({"id": clip_id}) is not None
 

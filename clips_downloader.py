@@ -9,9 +9,10 @@ timedelta
 load_dotenv();
 
 download_folder = "downloads"
+views_treshold = int(os.environ.get("CLIP_VIEW_TRESHOLD"))
 
 
-def get_all_clips(broadcaster_id):
+def get_broadcaster_clips(broadcaster_id):
     all_clips = []
     after = None
 
@@ -39,31 +40,37 @@ def download_clip(clip_url, file_name):
     else:
         print(f"Error: {response.status_code}, {response.text}")
 
+def download_clips() -> int:
+    clips_count = 0
+    for broadcaster in get_active_broadcasters():
+        print(f"seraching clips for \"{broadcaster.name}\"")
 
-for broadcaster in get_active_broadcasters():
 
-    # Get all clips from the last week
-    all_clips = get_all_clips(broadcaster.id)
-    if all_clips:
+        # Get all clips from the last week
+        clips = get_broadcaster_clips(broadcaster.id)
 
-        # Sort clips by view count, most first
-        sorted_clips = sorted(all_clips, key=lambda clip: clip['view_count'], reverse=True)
+        if clips:
 
-        # Calculate average view count
-        average_view_count = sum([clip['view_count'] for clip in sorted_clips]) / len(sorted_clips)
+            # Sort clips by view count, most first
+            sorted_clips = sorted(clips, key=lambda clip: clip['view_count'], reverse=True)
 
-        # Filter clips with more than the average amount of views and at least 1000 views
-        filtered_clips = [clip for clip in sorted_clips if clip['view_count'] > average_view_count and clip['view_count'] > 1000]
+            # Calculate average view count
+            average_view_count = sum([clip['view_count'] for clip in sorted_clips]) / len(sorted_clips)
 
-        # Download filtered clips
-        os.makedirs(download_folder, exist_ok=True)
+            # Filter clips with more than the average amount of views and at least (views_treshold) views
+            filtered_clips = [clip for clip in sorted_clips if clip['view_count'] > average_view_count and clip['view_count'] > views_treshold]
 
-        for clip in filtered_clips:
-            if clip_exists(clip["id"]):
-                print(f"Clip {clip['id']} already exists, skipping...")
-                continue
-            print(f"Downloading: {clip['title']}, URL: {clip['url']}, Views: {clip['view_count']}")
-            file_name = os.path.join(download_folder, f"{clip['id']}.mp4")
-            download_clip(clip['thumbnail_url'].replace('-preview-480x272.jpg', '.mp4'), file_name)
-            # Store clip data in the MongoDB database
-            store_clip_data(clip, file_name)
+            # Download filtered clips
+            os.makedirs(download_folder, exist_ok=True)
+
+            for clip in filtered_clips:
+                if clip_exists(clip["id"]):
+                    print(f"Clip {clip['id']} already exists, skipping...")
+                    continue
+                clips_count += 1
+                print(f"Downloading: {clip['title']}, URL: {clip['url']}, Views: {clip['view_count']}")
+                file_name = os.path.join(download_folder, f"{clip['id']}.mp4")
+                download_clip(clip['thumbnail_url'].replace('-preview-480x272.jpg', '.mp4'), file_name)
+                # Store clip data in the MongoDB database
+                store_clip_data(clip, file_name)
+    return clips_count

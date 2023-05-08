@@ -25,10 +25,10 @@ def convert_to_vertical(clip: Clip):
     text = text.set_position(('center', 50)).set_duration(video_clip.duration)
 
      # Create a semi-transparent watermark text diagonally across the inner clip
-    watermark_text = TextClip(channel_name, fontsize=70, color='white', bg_color='transparent')
+    watermark_text = TextClip(channel_name, fontsize=70, color='white', bg_color='transparent', stroke_width=1)
     watermark_text = watermark_text.set_position(("center", "center"), relative=True)
     watermark_text = rotate(watermark_text, angle=-35, unit="deg", resample="bicubic", expand=True)
-    watermark_text.set_opacity(0.7)
+    watermark_text.set_opacity(0.55)
     watermark_text = watermark_text.set_duration(video_clip.duration)
 
     # Combine the black bar, centered clip, and text into a final composite clip
@@ -39,17 +39,18 @@ def convert_to_vertical(clip: Clip):
         output_path,
         codec='libx264',
         audio_codec='aac',
-        temp_audiofile=audio_output
+        temp_audiofile=audio_output,
+        bitrate='5000k'
     )
     set_converted(clip, output_path)
 
 
-os.makedirs(converted_folder, exist_ok=True)
-os.makedirs(temp_folder, exist_ok=True)
+def convert_clips() -> int:
+    os.makedirs(converted_folder, exist_ok=True)
+    os.makedirs(temp_folder, exist_ok=True)
 
-_clips = get_clips_to_convert()
-if not _clips:
-    print('No clips to convert')
-for clip in _clips:
-    print(f'Converting {clip.id} to 9:16 aspect ratio')
-    convert_to_vertical(clip)
+    _clips = get_clips_to_convert()
+    for clip in _clips:
+        print(f'Converting {clip.id}...')
+        convert_to_vertical(clip)
+    return len(_clips)
