@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from typing import NamedTuple,List
 import google_auth_oauthlib
 import googleapiclient.discovery
@@ -33,31 +34,32 @@ def get_credentail_object_from_token_info(token_info: DbTokenInfo) -> Credential
         **token_info._asdict(),
         "client_id": yt_secrets["installed"]["client_id"],
         "client_secret": yt_secrets["installed"]["client_secret"]
-    })
+    }, scopes=token_info.scope)
 
 def update_db_token(token_info: DbTokenInfo):
     YT_TOKENS.update_one(
         {"_id": "token"},
-        {"$set": {"credentials": token_info}},
+        {"$set": {"credentials": token_info._asdict()}},
         upsert=True
     )
 
 def authenticate():
     scopes = ["https://www.googleapis.com/auth/youtube.upload"]
     credentials = None
+    db_token_info = None
 
     # Load the stored credentials from MongoDB
     token_doc = YT_TOKENS.find_one({"_id": "token"})
-    db_token_info = DbTokenInfo(**token_doc['credentials'])
 
     if token_doc:
+        db_token_info = DbTokenInfo(**token_doc['credentials'])
         credentials = get_credentail_object_from_token_info(db_token_info)
 
     if not credentials or not credentials.valid:
         print('token not valid')
 
         # refresh token
-        if credentials and credentials.expired and credentials.refresh_token:
+        if credentials and credentials.expired and credentials.refresh_token and db_token_info:
             print('token expired - refreshing...')
             credentials.refresh(Request())
             update_db_token(db_token_info._replace(refresh_token=credentials.refresh_token))#todo: expiry update
@@ -70,22 +72,23 @@ def authenticate():
             print('Please go to this URL and authorize the application:', auth_url)
             code = input('Enter the authorization code: ')
             token_info = flow.fetch_token(code=code)
-            credentials = get_credentail_object_from_token_info(token_info)
-            update_db_token(DbTokenInfo(**token_info))
+            db_token_info = DbTokenInfo(**token_info)
+            credentials = get_credentail_object_from_token_info(db_token_info)
+            update_db_token(db_token_info)
 
     return credentials
 
 
 def upload_clip(clip: Clip):
-    youtube = build('youtube', 'v3', credentials=authenticate())
+    creds = authenticate()
+    youtube = build('youtube', 'v3', credentials=creds)
 
-    # channel = youtube.channels().list(mine=True, part='snippet').execute()
     request = youtube.videos().insert(
         part="snippet,status",
         body={
             "snippet": {
-                "title": clip.title,
-                "tags": ["twitch", "clips", clip.broadcaster_name]
+                "title": clip.broadcaster_name + " - " + clip.title,
+                "tags": [clip.broadcaster_name, "shorts", "twitch", "clips"]
             },
             "status": {
                 "privacyStatus": "private"
@@ -94,10 +97,10 @@ def upload_clip(clip: Clip):
         media_body=googleapiclient.http.MediaFileUpload(clip.converted_path, chunksize=-1, resumable=True)
     )
 
-    set_uploaded(clip.id)
     response = request.execute()
-    print(response) # todo: get upload url
-    print(f"Uploaded video with ID: {response['id']}")
+    if response:
+        print(f"Uploaded video with ID: {response['id']}")
+        set_uploaded(clip.id) # todo: video url <--------------
 
 
 def upload_clips() -> int:
