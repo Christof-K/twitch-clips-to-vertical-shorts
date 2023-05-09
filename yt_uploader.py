@@ -1,4 +1,5 @@
 import json
+import os
 from typing import NamedTuple,List
 import google_auth_oauthlib
 import googleapiclient.discovery
@@ -6,7 +7,7 @@ import googleapiclient.errors
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from mongo_connector import YT_TOKENS
-from storage.clip_storage import Clip, get_clips_to_upload, set_uploaded
+from storage.clip_storage import Clip, get_clips_to_upload, set_error, set_uploaded
 from googleapiclient.discovery import build
 
 
@@ -102,6 +103,9 @@ def upload_clip(clip: Clip):
 def upload_clips() -> int:
     _clips = get_clips_to_upload()
     for clip in _clips:
+        if not os.path.isfile(clip.converted_path):
+            set_error(clip.id)
+            continue
         upload_clip(clip)
 
     return len(_clips)

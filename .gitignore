@@ -1,9 +1,9 @@
-./downloads
-./converted
-./temp
+/downloads
+/converted
+/temp
 .venv
 venv
 __pycache__
 .env
-./yt_secrets.json
+/yt_secrets.json
 .pylintrc

@@ -1,7 +1,7 @@
 import os
 from moviepy.editor import *
 from moviepy.video.fx.all import rotate
-from storage.clip_storage import set_converted, get_clips_to_convert, Clip
+from storage.clip_storage import set_converted, get_clips_to_convert, Clip, set_error
 from dotenv import load_dotenv
 load_dotenv();
 
@@ -51,6 +51,9 @@ def convert_clips() -> int:
 
     _clips = get_clips_to_convert()
     for clip in _clips:
+        if not os.path.isfile(clip.download_path):
+            set_error(clip.id)
+            continue
         print(f'Converting {clip.id}...')
         convert_to_vertical(clip)
     return len(_clips)
