@@ -74,4 +74,3 @@ def download_clips() -> int:
                 # Store clip data in the MongoDB database
                 store_clip_data(clip, file_name)
     return clips_count
-``
