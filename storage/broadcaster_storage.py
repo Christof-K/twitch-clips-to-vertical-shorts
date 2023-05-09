@@ -1,6 +1,6 @@
 import sys
 from typing import NamedTuple, List
-from mongo_connector import TWITCH_BROADCASTERS
+from storage.mongo_connector import TWITCH_BROADCASTERS
 
 class Broadcaster(NamedTuple):
   id: int

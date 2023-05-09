@@ -1,6 +1,6 @@
 import string
 from typing import NamedTuple, List
-from mongo_connector import CLIPS
+from storage.mongo_connector import CLIPS
 
 
 class Clip(NamedTuple):

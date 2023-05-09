@@ -1,7 +1,7 @@
 import argparse
-from clips_downloader import download_clips
-from converter import convert_clips
-from yt_uploader import upload_clips
+from src.clips_downloader import download_clips
+from src.converter import convert_clips
+from src.yt_uploader import upload_clips
 
 
 # Set up command-line arguments

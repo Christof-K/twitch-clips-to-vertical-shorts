@@ -4,7 +4,7 @@ from datetime import timedelta
 from storage.clip_storage import store_clip_data,clip_exists
 from storage.broadcaster_storage import get_active_broadcasters
 from dotenv import load_dotenv
-from twitch_api import get_clips_page, MAX_CLIPS_PER_REQUEST
+from src.twitch_api import get_clips_page, MAX_CLIPS_PER_REQUEST
 timedelta
 load_dotenv();
 

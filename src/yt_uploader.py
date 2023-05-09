@@ -6,7 +6,7 @@ import googleapiclient.discovery
 import googleapiclient.errors
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from mongo_connector import YT_TOKENS
+from storage.mongo_connector import YT_TOKENS
 from storage.clip_storage import Clip, get_clips_to_upload, set_error, set_uploaded
 from googleapiclient.discovery import build
 

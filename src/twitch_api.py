@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 import requests
-from mongo_connector import TWITCH_TOKENS
+from storage.mongo_connector import TWITCH_TOKENS
 load_dotenv();
 
 CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
