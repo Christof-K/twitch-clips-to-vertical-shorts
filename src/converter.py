@@ -22,9 +22,21 @@ def convert_to_vertical(clip: Clip):
     # Position the inner clip in the vertical center of the black_bar
     centered_clip = video_clip.set_position((0, "center"))
 
-    # Create a TextClip with broadcaster name
-    text = TextClip('twitch.tv/'+clip.broadcaster_name, fontsize=60, color='white', bg_color='transparent', size=(black_bar.size[0], 50))
-    text = text.set_position(('center', 50)).set_duration(video_clip.duration)
+    # Create an ImageClip for the Twitch icon
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    assets_dir = os.path.abspath(os.path.join(script_dir, '..', 'assets'))
+    svg_path = os.path.join(assets_dir, 'twitch_icon.png')
+
+    icon_clip = ImageClip(svg_path, duration=video_clip.duration)
+    icon_clip = resize(icon_clip, width=80)
+
+    # Create a TextClip for the username
+    username = TextClip(clip.broadcaster_name, fontsize=50, color='white', bg_color='transparent')
+    icon_clip = icon_clip.set_position((0, 0)).set_duration(video_clip.duration)
+    username = username.set_position((100, 15)).set_duration(video_clip.duration)
+
+    credentials = CompositeVideoClip([icon_clip, username], size=(1080, 200)).set_position((50, 50))
+
 
     # Create a blurred background of the inner clip
     background_clip = resize(video_clip, newsize=(video_clip.size[0] // 4, video_clip.size[1] // 4))
@@ -32,19 +44,17 @@ def convert_to_vertical(clip: Clip):
     background_clip = resize(background_clip, height=1920)
     background_clip = background_clip.set_position("center")
 
-     # Create a semi-transparent watermark text diagonally across the inner clip
-    #watermark_text = TextClip(channel_name, fontsize=20, color='white', bg_color='transparent', stroke_width=1)
-    #watermark_text = watermark_text.set_position(("center", "center"), relative=True)
-    #watermark_text = rotate(watermark_text, angle=-35, unit="deg", resample="bicubic", expand=True)
-    #watermark_text = watermark_text.set_duration(video_clip.duration)
+    # Create a semi-transparent watermark text diagonally across the inner clip
+    # watermark_text = TextClip(channel_name, fontsize=40, color='white', bg_color='transparent', stroke_width=1)
+    # watermark_text = watermark_text.set_position(("center", 1600)).set_duration(video_clip.duration)
 
     # Combine the black bar, centered clip, and text into a final composite clip
     final_clip = CompositeVideoClip([
         black_bar,
         background_clip,
         centered_clip,
-        text
-        #watermark_text
+        credentials,
+        # watermark_text
     ])
 
     # Write the final clip to a new video file
