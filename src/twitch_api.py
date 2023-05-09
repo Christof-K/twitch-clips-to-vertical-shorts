@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import os
+from typing import List, NamedTuple
 from dotenv import load_dotenv
 import requests
 from storage.mongo_connector import TWITCH_TOKENS
@@ -7,6 +8,20 @@ load_dotenv();
 
 CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 MAX_CLIPS_PER_REQUEST = 100
+
+class Broadcaster(NamedTuple):
+  broadcaster_language: str
+  broadcaster_login: str
+  display_name: str
+  game_id: str
+  game_name: str
+  id: str
+  is_live: bool
+  tag_ids: List[str]
+  tags: List[str]
+  thumbnail_url: str
+  title: str
+  started_at: str
 
 def call_api(url, headers, params):
     response = requests.get(url, headers=headers, params=params)
@@ -53,14 +68,25 @@ def get_oauth_token(force: bool = False):
         return None
 
 
-
-def get_clips_page(broadcaster_id, after=None):
-    url = "https://api.twitch.tv/helix/clips"
-    headers = {
+def get_headers():
+    return {
         "Client-ID": CLIENT_ID,
         "Authorization": get_oauth_token(),
         "Accept": "application/vnd.twitchtv.v5+json"
     }
+
+def parse_response(response: requests.Response):
+    if response.status_code == 200:
+        json_data = response.json()
+        return json_data
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        return None
+
+
+def get_clips_page(broadcaster_id, after=None):
+    url = "https://api.twitch.tv/helix/clips"
+
     params = {
         "broadcaster_id": broadcaster_id,
         "first": MAX_CLIPS_PER_REQUEST,
@@ -70,11 +96,18 @@ def get_clips_page(broadcaster_id, after=None):
     if after:
         params["after"] = after
 
-    response = call_api(url, headers, params)
+    response = call_api(url, get_headers(), params)
+    return parse_response(response);
 
-    if response.status_code == 200:
-        json_data = response.json()
-        return json_data
-    else:
-        print(f"get_clips_page - Error: {response.status_code}, {response.text}")
-        return None
+# todo: db stored
+def get_broadcaster(login: str) -> Broadcaster|None:
+    url = "https://api.twitch.tv/helix/search/channels"
+    response = call_api(url, get_headers(), {"query": login})
+    result = parse_response(response)
+    broadcaster = None
+    for caster_data in result["data"]:
+        if caster_data["broadcaster_login"] == login:
+            broadcaster = Broadcaster(**caster_data)
+            break
+    return broadcaster;
+

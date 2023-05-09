@@ -2,7 +2,7 @@ import os
 import requests
 from datetime import timedelta
 from storage.clip_storage import store_clip_data,clip_exists
-from storage.broadcaster_storage import get_active_broadcasters
+from storage.broadcaster_storage import get_broadcasters
 from dotenv import load_dotenv
 from src.twitch_api import get_clips_page, MAX_CLIPS_PER_REQUEST
 timedelta
@@ -42,8 +42,8 @@ def download_clip(clip_url, file_name):
 
 def download_clips() -> int:
     clips_count = 0
-    for broadcaster in get_active_broadcasters():
-        print(f"seraching clips for \"{broadcaster.name}\"")
+    for broadcaster in get_broadcasters():
+        print(f"fetching clips from \"{broadcaster.display_name}\"")
 
 
         # Get all clips from the last week
@@ -68,9 +68,10 @@ def download_clips() -> int:
                     print(f"Clip {clip['id']} already exists, skipping...")
                     continue
                 clips_count += 1
-                print(f"Downloading: {clip['title']}, URL: {clip['url']}, Views: {clip['view_count']}")
+                print(f"\tDownloading: {clip['title']}, URL: {clip['url']}, Views: {clip['view_count']}")
                 file_name = os.path.join(download_folder, f"{clip['id']}.mp4")
                 download_clip(clip['thumbnail_url'].replace('-preview-480x272.jpg', '.mp4'), file_name)
                 # Store clip data in the MongoDB database
                 store_clip_data(clip, file_name)
     return clips_count
+``

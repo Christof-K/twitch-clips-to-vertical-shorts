@@ -22,4 +22,4 @@ if not args.skip_convert:
 
 if not args.skip_upload:
   uploaded_count = upload_clips()
-  print(f"~uploaded: {upload_clips}\n")
+  print(f"~uploaded: {uploaded_count}\n")

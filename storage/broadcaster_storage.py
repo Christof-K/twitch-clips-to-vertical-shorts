@@ -1,17 +1,17 @@
+import json
 import sys
 from typing import NamedTuple, List
 from storage.mongo_connector import TWITCH_BROADCASTERS
+from src.twitch_api import Broadcaster, get_broadcaster
 
-class Broadcaster(NamedTuple):
-  id: int
-  name: str
-  active: int
 
-def get_active_broadcasters() -> List[Broadcaster]:
+
+def get_broadcasters() -> List[Broadcaster]:
+  print("fetching broadcasters data...")
   result = []
-  query = {"active": 1}
-  cursor = TWITCH_BROADCASTERS.find(query)
-  for c in cursor:
-    c.pop('_id', None)
-    result.append(Broadcaster(**c))
+  casters = json.load(open("storage/broadcasters.json", "r"))
+  for caster in casters:
+    bc = get_broadcaster(caster)
+    result.append(bc)
+
   return result
