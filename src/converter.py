@@ -33,13 +33,19 @@ def convert_to_vertical(clip: Clip):
     background_clip = background_clip.set_position("center")
 
      # Create a semi-transparent watermark text diagonally across the inner clip
-    watermark_text = TextClip(channel_name, fontsize=20, color='white', bg_color='transparent', stroke_width=1)
-    watermark_text = watermark_text.set_position(("center", "center"), relative=True)
-    watermark_text = rotate(watermark_text, angle=-35, unit="deg", resample="bicubic", expand=True)
-    watermark_text = watermark_text.set_duration(video_clip.duration)
+    #watermark_text = TextClip(channel_name, fontsize=20, color='white', bg_color='transparent', stroke_width=1)
+    #watermark_text = watermark_text.set_position(("center", "center"), relative=True)
+    #watermark_text = rotate(watermark_text, angle=-35, unit="deg", resample="bicubic", expand=True)
+    #watermark_text = watermark_text.set_duration(video_clip.duration)
 
     # Combine the black bar, centered clip, and text into a final composite clip
-    final_clip = CompositeVideoClip([black_bar, background_clip, centered_clip, text, watermark_text])
+    final_clip = CompositeVideoClip([
+        black_bar,
+        background_clip,
+        centered_clip,
+        text
+        #watermark_text
+    ])
 
     # Write the final clip to a new video file
     final_clip.write_videofile(
