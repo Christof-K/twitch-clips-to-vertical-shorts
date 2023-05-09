@@ -83,6 +83,7 @@ def upload_clip(clip: Clip):
     creds = authenticate()
     youtube = build('youtube', 'v3', credentials=creds)
 
+    print(f"uploading clip: {clip.broadcaster_name} - {clip.title}")
     request = youtube.videos().insert(
         part="snippet,status",
         body={
@@ -91,7 +92,7 @@ def upload_clip(clip: Clip):
                 "tags": [clip.broadcaster_name, "shorts", "twitch", "clips"]
             },
             "status": {
-                "privacyStatus": "private"
+                "privacyStatus": "public"
             }
         },
         media_body=googleapiclient.http.MediaFileUpload(clip.converted_path, chunksize=-1, resumable=True)
@@ -99,7 +100,7 @@ def upload_clip(clip: Clip):
 
     response = request.execute()
     if response:
-        print(f"Uploaded video with ID: {response['id']}")
+        print(f"Finished! {response['id']}")
         set_uploaded(clip.id) # todo: video url <--------------
 
 
