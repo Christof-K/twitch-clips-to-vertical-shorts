@@ -84,13 +84,14 @@ def parse_response(response: requests.Response):
         return None
 
 
-def get_clips_page(broadcaster_id, after=None):
+def get_clips_page(broadcaster_id=None, game_id=None, after=None):
     url = "https://api.twitch.tv/helix/clips"
 
     params = {
         "broadcaster_id": broadcaster_id,
+        "game_id": game_id,
         "first": MAX_CLIPS_PER_REQUEST,
-        "started_at": (datetime.utcnow() - timedelta(days=1)).isoformat() + "Z"
+        "started_at": (datetime.utcnow() - timedelta(days=7)).isoformat() + "Z"
     }
 
     if after:

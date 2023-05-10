@@ -89,7 +89,7 @@ def upload_clip(clip: Clip):
         body={
             "snippet": {
                 # "notifySubscribers"
-                "title": clip.broadcaster_name + " - " + clip.title,
+                "title": clip.title,
                 # "tags": [clip.broadcaster_name, "shorts", "twitch", "clips"],
                 # "defaultLanguage": clip.language,
                 # "categoryId":
