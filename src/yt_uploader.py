@@ -8,7 +8,7 @@ import googleapiclient.errors
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from storage.mongo_connector import YT_TOKENS
-from storage.clip_storage import Clip, get_clips_to_upload, set_error, set_uploaded
+from storage.clip_storage import Clip, get_clips_for_yt_upload, set_error, set_yt_uploaded
 from googleapiclient.discovery import build
 
 
@@ -106,11 +106,11 @@ def upload_clip(clip: Clip):
     response = request.execute()
     if response:
         print(f"Finished! {response['id']}", response)
-        set_uploaded(clip.id) # todo: video url <--------------
+        set_yt_uploaded(clip.id) # todo: video url <--------------
 
 
 def upload_clips() -> int:
-    _clips = get_clips_to_upload()
+    _clips = get_clips_for_yt_upload()
     for clip in _clips:
         if not os.path.isfile(clip.converted_path):
             set_error(clip.id)

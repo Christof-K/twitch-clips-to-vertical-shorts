@@ -32,7 +32,8 @@ def store_clip_data(clip, downlad_file_name: string):
         "download_path": downlad_file_name,
         "converted_path": "",
         "converted": 0,
-        "uploaded": 0,
+        "yt_uploaded": 0,
+        "tiktok_uploaded": 0,
         "error": 0,
         "archived": 0
     }
@@ -50,9 +51,18 @@ def get_clips_to_convert() -> List[Clip]:
         clips.append(clip_obj)
     return clips
 
-def get_clips_to_upload() -> List[Clip]:
+def get_clips_for_yt_upload() -> List[Clip]:
     clips = []
-    query = {"error": 0, "archived": 0, "converted": 1, "uploaded": 0}
+    query = {"error": 0, "archived": 0, "converted": 1, "yt_uploaded": 0}
+    cursor = CLIPS.find(query)
+    for c in cursor:
+        clip_obj = Clip(**_clip_parser(c))
+        clips.append(clip_obj)
+    return clips
+
+def get_clips_for_tiktok_upload() -> List[Clip]:
+    clips = []
+    query = {"error": 0, "archived": 0, "converted": 1, "tiktok_uploaded": 0}
     cursor = CLIPS.find(query)
     for c in cursor:
         clip_obj = Clip(**_clip_parser(c))
@@ -71,10 +81,16 @@ def set_converted(clip: Clip, output_path: string):
     }}
   )
 
-def set_uploaded(clip_id: string):
+def set_yt_uploaded(clip_id: string):
   CLIPS.update_one(
      {"id": clip_id},
-     {"$set": {"uploaded": 1}}
+     {"$set": {"yt_uploaded": 1}}
+  )
+
+def set_tiktok_uploaded(clip_id: string):
+  CLIPS.update_one(
+     {"id": clip_id},
+     {"$set": {"tiktok_uploaded": 1}}
   )
 
 def set_error(clip_id: string):

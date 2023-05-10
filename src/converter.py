@@ -17,7 +17,11 @@ def convert_to_vertical(clip: Clip):
     output_path = os.path.join(converted_folder, f'vertical_{clip.id}.mp4')
     audio_output = os.path.join(temp_folder, f'sound_vertical_{clip.id}.mp4')
     video_clip = VideoFileClip(clip.download_path, target_resolution=(607, 1080))
-    black_bar = ColorClip((1080, 1920), color=[0, 0, 0], duration=video_clip.duration)
+    duration = video_clip.duration
+    if duration > 59.0:
+        duration = 59.0 # yt shorts safe
+        video_clip.set_duration(duration)
+    black_bar = ColorClip((1080, 1920), color=[0, 0, 0], duration=duration)
 
     # Position the inner clip in the vertical center of the black_bar
     centered_clip = video_clip.set_position((0, "center"))
@@ -27,13 +31,13 @@ def convert_to_vertical(clip: Clip):
     assets_dir = os.path.abspath(os.path.join(script_dir, '..', 'assets'))
     svg_path = os.path.join(assets_dir, 'twitch_icon.png')
 
-    icon_clip = ImageClip(svg_path, duration=video_clip.duration)
+    icon_clip = ImageClip(svg_path, duration=duration)
     icon_clip = resize(icon_clip, width=80)
 
     # Create a TextClip for the username
     username = TextClip(clip.broadcaster_name, fontsize=50, color='white', bg_color='transparent')
-    icon_clip = icon_clip.set_position((0, 0)).set_duration(video_clip.duration)
-    username = username.set_position((100, 15)).set_duration(video_clip.duration)
+    icon_clip = icon_clip.set_position((0, 0)).set_duration(duration)
+    username = username.set_position((100, 15)).set_duration(duration)
 
     credentials = CompositeVideoClip([icon_clip, username], size=(1080, 200)).set_position((50, 50))
 
