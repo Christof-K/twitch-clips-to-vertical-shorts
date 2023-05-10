@@ -88,11 +88,16 @@ def upload_clip(clip: Clip):
         part="snippet,status",
         body={
             "snippet": {
+                # "notifySubscribers"
                 "title": clip.broadcaster_name + " - " + clip.title,
-                "tags": [clip.broadcaster_name, "shorts", "twitch", "clips"]
+                "tags": [clip.broadcaster_name, "shorts", "twitch", "clips"],
+                "defaultLanguage": clip.language,
+                # "categoryId":
             },
             "status": {
-                "privacyStatus": "public"
+                "privacyStatus": "public",
+                "selfDeclaredMadeForKids": False,
+                "license": "youtube"
             }
         },
         media_body=googleapiclient.http.MediaFileUpload(clip.converted_path, chunksize=-1, resumable=True)
@@ -100,7 +105,7 @@ def upload_clip(clip: Clip):
 
     response = request.execute()
     if response:
-        print(f"Finished! {response['id']}")
+        print(f"Finished! {response['id']}", response)
         set_uploaded(clip.id) # todo: video url <--------------
 
 
