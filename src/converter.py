@@ -1,9 +1,10 @@
 import os
 from moviepy.editor import *
+from src.editor import crop_webcam
 from storage.clip_storage import set_converted, get_clips_to_convert, Clip, set_error
 from dotenv import load_dotenv
 load_dotenv();
-from moviepy.video.fx.all import resize,rotate
+from moviepy.video.fx.all import resize
 from skimage.filters import gaussian
 
 channel_name = os.environ.get('YT_CHANNEL_NAME')
@@ -48,6 +49,11 @@ def convert_to_vertical(clip: Clip):
     background_clip = resize(background_clip, height=1920)
     background_clip = background_clip.set_position("center")
 
+    # todo: ----
+    cropped_webcam = crop_webcam(video_clip)
+    webcam_clip = resize(cropped_webcam, width=1080)
+    webcam_clip.set_position(0, 1920-webcam_clip.h)
+
     # Create a semi-transparent watermark text diagonally across the inner clip
     # watermark_text = TextClip(channel_name, fontsize=40, color='white', bg_color='transparent', stroke_width=1)
     # watermark_text = watermark_text.set_position(("center", 1600)).set_duration(video_clip.duration)
@@ -58,6 +64,7 @@ def convert_to_vertical(clip: Clip):
         background_clip,
         centered_clip,
         credentials,
+        webcam_clip
         # watermark_text
     ])
 
