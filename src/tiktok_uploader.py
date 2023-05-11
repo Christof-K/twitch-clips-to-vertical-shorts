@@ -3,6 +3,8 @@
 
 import requests, datetime, hashlib, hmac, random, zlib, json
 
+from storage.clip_storage import Clip
+
 def sign(key, msg):
 	return hmac.new(key, msg.encode('utf-8'), hashlib.sha256).digest()
 
@@ -15,7 +17,7 @@ def getSignatureKey(key, dateStamp, regionName, serviceName):
 
 def AWSsignature(access_key, secret_key, request_parameters, headers, method="GET", payload='', region="us-east-1", service="vod"):
 	# https://docs.aws.amazon.com/fr_fr/general/latest/gr/sigv4-signed-request-examples.html
-	canonical_uri = '/' 
+	canonical_uri = '/'
 	canonical_querystring = request_parameters
 	canonical_headers = '\n'.join([f"{h[0]}:{h[1]}" for h in headers.items()]) + '\n'
 	signed_headers = ';'.join(headers.keys())
@@ -48,7 +50,7 @@ def printError(url, r):
 
 def assertSuccess(url, r):
 	if r.status_code != 200:
-		printError(url, r)	
+		printError(url, r)
 	return r.status_code == 200
 
 def uploadVideo(session_id, video, title, tags, schedule_time=0, verbose=True):
@@ -226,14 +228,12 @@ def uploadVideo(session_id, video, title, tags, schedule_time=0, verbose=True):
 
 	return True
 
-if __name__ == "__main__":
-	import argparse
-	parser = argparse.ArgumentParser()
-	parser.add_argument("-i", "--session_id", help="Tiktok sessionid cookie", required=True)
-	parser.add_argument("-p", "--path", help="Path to video file", required=True)
-	parser.add_argument("-t", "--title", help="Title of the video", required=True)
-	parser.add_argument("--tags", nargs='*', default=[], help="List of hashtags for the video")
-	parser.add_argument("-s", "--schedule_time", type=int, default=0, help="schedule timestamp for video upload")
-	args = parser.parse_args()
 
-	uploadVideo(args.session_id, args.path, args.title, args.tags, args.schedule_time, verbose=True)
+def upload_clip(clip: Clip):
+	session_id = "563991c25cb2f2274ceb40f161817d7c"
+	uploadVideo(
+		session_id,
+		clip.converted_path,
+		clip.title,
+		["twitch", "twichclips", "twichstreamer"],
+	)
