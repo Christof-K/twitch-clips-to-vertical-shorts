@@ -13,7 +13,7 @@ temp_folder = "temp"
 max_height = 1080
 
 
-def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of category try to detect ppl or not
+def convert_to_vertical(clip: Clip, _crop_webcam=False): #todo: source depends of category try to detect ppl or not
 
     output_path = os.path.join(converted_folder, f'vertical_{clip.id}.mp4')
     audio_output = os.path.join(temp_folder, f'sound_vertical_{clip.id}.mp4')
@@ -26,8 +26,6 @@ def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of
     black_bar = ColorClip((1080, 1920), color=[0, 0, 0], duration=duration)
     all_clips.append(black_bar)
 
-    # Position the inner clip in the vertical center of the black_bar
-    centered_clip = video_clip.set_position((0, "center"))
 
     # Create an ImageClip for the Twitch icon
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -38,15 +36,24 @@ def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of
     icon_clip = resize(icon_clip, width=80)
 
 
+    if not _crop_webcam:
+        # Create a blurred background of the inner clip
+        background_clip = resize(video_clip, newsize=(video_clip.size[0] // 4, video_clip.size[1] // 4))
+        background_clip = background_clip.fl_image(lambda image: gaussian(image.astype(float), sigma=25))
+        background_clip = resize(background_clip, height=1920)
+        background_clip = background_clip.set_position("center")
+        all_clips.append(background_clip)
+        all_clips.append(video_clip.set_position((0, "center")))
+    else:
+        # croped and zoome clip of caster above full size screen clip, centered horizontally
+        cropped_webcam = crop_webcam(video_clip)
+        webcam_clip = resize(cropped_webcam, width=1080)
+        scene = CompositeVideoClip([
+            webcam_clip.set_position((0, 0)),
+            video_clip.set_position((0, webcam_clip.h))
+        ], size=(1080, video_clip.h+webcam_clip.h))
+        all_clips.append(scene.set_position((0, "center")))
 
-
-    # Create a blurred background of the inner clip
-    background_clip = resize(video_clip, newsize=(video_clip.size[0] // 4, video_clip.size[1] // 4))
-    background_clip = background_clip.fl_image(lambda image: gaussian(image.astype(float), sigma=25))
-    background_clip = resize(background_clip, height=1920)
-    background_clip = background_clip.set_position("center")
-    all_clips.append(background_clip)
-    all_clips.append(centered_clip)
 
     # Create a TextClip for the username
     username = TextClip(clip.broadcaster_name, fontsize=50, color='white', bg_color='transparent')
@@ -55,12 +62,6 @@ def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of
 
     credentials = CompositeVideoClip([icon_clip, username], size=(1080, 200)).set_position((50, 50))
     all_clips.append(credentials)
-
-    # todo: ----
-    if crop_webcam:
-        cropped_webcam = crop_webcam(video_clip)
-        webcam_clip = resize(cropped_webcam, width=1080)
-        webcam_clip.set_position(0, 1920-webcam_clip.h)
 
     # Create a semi-transparent watermark text diagonally across the inner clip
     # watermark_text = TextClip(channel_name, fontsize=40, color='white', bg_color='transparent', stroke_width=1)

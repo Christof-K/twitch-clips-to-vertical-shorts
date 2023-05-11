@@ -21,6 +21,17 @@ def get_caster_coords(clip: VideoFileClip):
 
 
 def crop_webcam(clip: VideoFileClip) -> VideoFileClip:
+    margin_value = 20
     #todo: empty result
     x,y,x1,y1 = tuple(get_caster_coords(clip))
+    x -= margin_value
+    y -= margin_value
+    x1 += margin_value
+    y1 += margin_value
+
+    if x < 0 : x = 0
+    if y < 0 : y = 0
+    if x1 > 1080 : x1 = 1080
+    if y1 > 1920 : y1 = 1920
+
     return crop(clip, x,y,x1,y1)
