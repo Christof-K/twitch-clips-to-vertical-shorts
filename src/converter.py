@@ -18,11 +18,13 @@ def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of
     output_path = os.path.join(converted_folder, f'vertical_{clip.id}.mp4')
     audio_output = os.path.join(temp_folder, f'sound_vertical_{clip.id}.mp4')
     video_clip = VideoFileClip(clip.download_path, target_resolution=(607, 1080))
+    all_clips = []
     duration = video_clip.duration
     if duration > 59.0:
         duration = 59.0 # yt shorts safe
         video_clip.set_duration(duration)
     black_bar = ColorClip((1080, 1920), color=[0, 0, 0], duration=duration)
+    all_clips.append(black_bar)
 
     # Position the inner clip in the vertical center of the black_bar
     centered_clip = video_clip.set_position((0, "center"))
@@ -35,12 +37,7 @@ def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of
     icon_clip = ImageClip(svg_path, duration=duration)
     icon_clip = resize(icon_clip, width=80)
 
-    # Create a TextClip for the username
-    username = TextClip(clip.broadcaster_name, fontsize=50, color='white', bg_color='transparent')
-    icon_clip = icon_clip.set_position((0, 0)).set_duration(duration)
-    username = username.set_position((100, 15)).set_duration(duration)
 
-    credentials = CompositeVideoClip([icon_clip, username], size=(1080, 200)).set_position((50, 50))
 
 
     # Create a blurred background of the inner clip
@@ -48,6 +45,16 @@ def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of
     background_clip = background_clip.fl_image(lambda image: gaussian(image.astype(float), sigma=25))
     background_clip = resize(background_clip, height=1920)
     background_clip = background_clip.set_position("center")
+    all_clips.append(background_clip)
+    all_clips.append(centered_clip)
+
+    # Create a TextClip for the username
+    username = TextClip(clip.broadcaster_name, fontsize=50, color='white', bg_color='transparent')
+    icon_clip = icon_clip.set_position((0, 0)).set_duration(duration)
+    username = username.set_position((100, 15)).set_duration(duration)
+
+    credentials = CompositeVideoClip([icon_clip, username], size=(1080, 200)).set_position((50, 50))
+    all_clips.append(credentials)
 
     # todo: ----
     if crop_webcam:
@@ -59,14 +66,6 @@ def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of
     # watermark_text = TextClip(channel_name, fontsize=40, color='white', bg_color='transparent', stroke_width=1)
     # watermark_text = watermark_text.set_position(("center", 1600)).set_duration(video_clip.duration)
 
-    all_clips = [
-        black_bar,
-        background_clip,
-        centered_clip,
-        credentials
-    ]
-    if webcam_clip:
-        all_clips.append(webcam_clip)
     final_clip = CompositeVideoClip(all_clips)
 
     final_clip.write_videofile(
