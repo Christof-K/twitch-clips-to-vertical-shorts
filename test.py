@@ -4,7 +4,8 @@ from moviepy.editor import *
 from moviepy.video.fx.all import resize
 from storage.clip_storage import Clip
 
-path = "/Users/kk/projects/twitch_clips2yt_shorts_automation/downloads/AcceptableSquareOpossumOSfrog-9k6gyv_aUxk1AFE6.mp4"
+# path = "/Users/kk/projects/twitch_clips2yt_shorts_automation/downloads/AcceptableSquareOpossumOSfrog-9k6gyv_aUxk1AFE6.mp4"
+path = "/Users/kk/projects/twitch_clips2yt_shorts_automation/downloads/AnnoyingShinyHummingbirdNinjaGrumpy-KN5BFLQWH4QDonXS.mp4"
 clip = Clip(
   id="test",
   download_path=path,

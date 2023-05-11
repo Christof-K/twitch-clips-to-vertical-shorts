@@ -36,7 +36,20 @@ def convert_to_vertical(clip: Clip, _crop_webcam=False): #todo: source depends o
     icon_clip = resize(icon_clip, width=80)
 
 
-    if not _crop_webcam:
+    found_webcam = False
+    if _crop_webcam:
+        # croped and zoome clip of caster above full size screen clip, centered horizontally
+        cropped_webcam = crop_webcam(video_clip)
+        if cropped_webcam:
+            found_webcam = True
+            webcam_clip = resize(cropped_webcam, width=1080)
+            scene = CompositeVideoClip([
+                webcam_clip.set_position((0, 0)),
+                video_clip.set_position((0, webcam_clip.h))
+            ], size=(1080, video_clip.h+webcam_clip.h))
+            all_clips.append(scene.set_position((0, "center")))
+
+    if not found_webcam:
         # Create a blurred background of the inner clip
         background_clip = resize(video_clip, newsize=(video_clip.size[0] // 4, video_clip.size[1] // 4))
         background_clip = background_clip.fl_image(lambda image: gaussian(image.astype(float), sigma=25))
@@ -44,15 +57,7 @@ def convert_to_vertical(clip: Clip, _crop_webcam=False): #todo: source depends o
         background_clip = background_clip.set_position("center")
         all_clips.append(background_clip)
         all_clips.append(video_clip.set_position((0, "center")))
-    else:
-        # croped and zoome clip of caster above full size screen clip, centered horizontally
-        cropped_webcam = crop_webcam(video_clip)
-        webcam_clip = resize(cropped_webcam, width=1080)
-        scene = CompositeVideoClip([
-            webcam_clip.set_position((0, 0)),
-            video_clip.set_position((0, webcam_clip.h))
-        ], size=(1080, video_clip.h+webcam_clip.h))
-        all_clips.append(scene.set_position((0, "center")))
+
 
 
     # Create a TextClip for the username
@@ -89,5 +94,5 @@ def convert_clips() -> int:
             set_error(clip.id)
             continue
         print(f'Converting {clip.id}...')
-        convert_to_vertical(clip, False)
+        convert_to_vertical(clip, True)
     return len(_clips)

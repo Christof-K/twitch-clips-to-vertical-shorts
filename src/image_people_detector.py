@@ -8,7 +8,7 @@ import torch
 def get_people_coords(path: str, debug=False) -> List[List[int]]:
 
   image = Image.open(path)
-  image_cv2 = cv2.imread(path)
+  if debug: image_cv2 = cv2.imread(path)
 
   model = YolosForObjectDetection.from_pretrained('hustvl/yolos-tiny')
   processor = YolosImageProcessor.from_pretrained("hustvl/yolos-tiny")
@@ -25,11 +25,12 @@ def get_people_coords(path: str, debug=False) -> List[List[int]]:
 
   ppl = []
   for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
-    lb = [int(round(i,1)) for i in box.tolist()]
-    x, y, x2, y2 = tuple(lb)
-    ppl.append([x, y, x2, y2])
-    cv2.rectangle(image_cv2, (x,y), (x2,y2), (0, 0, 255), 2)
-    print(f"{model.config.id2label[label.item()]} {round(score.item(), 3)} at location {lb}")
+    if model.config.id2label[label.item()] == "person":
+      lb = [int(round(i,1)) for i in box.tolist()]
+      x, y, x2, y2 = tuple(lb)
+      ppl.append([x, y, x2, y2])
+      print(f"\tperson found at {lb}")
+      if debug: cv2.rectangle(image_cv2, (x,y), (x2,y2), (0, 0, 255), 2)
 
   if debug:
     cv2.imshow("", image_cv2)
