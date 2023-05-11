@@ -24,7 +24,7 @@ clip = Clip(
   vod_offset=""
 )
 
-convert_to_vertical(clip)
+convert_to_vertical(clip, True)
 
 # webcam_clip = crop_webcam(video_clip)
 # webcam_clip = resize(webcam_clip, width=1000)

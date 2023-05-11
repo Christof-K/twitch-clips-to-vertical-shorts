@@ -13,7 +13,7 @@ temp_folder = "temp"
 max_height = 1080
 
 
-def convert_to_vertical(clip: Clip):
+def convert_to_vertical(clip: Clip, crop_webcam=False): #todo: source depends of category try to detect ppl or not
 
     output_path = os.path.join(converted_folder, f'vertical_{clip.id}.mp4')
     audio_output = os.path.join(temp_folder, f'sound_vertical_{clip.id}.mp4')
@@ -50,25 +50,25 @@ def convert_to_vertical(clip: Clip):
     background_clip = background_clip.set_position("center")
 
     # todo: ----
-    cropped_webcam = crop_webcam(video_clip)
-    webcam_clip = resize(cropped_webcam, width=1080)
-    webcam_clip.set_position(0, 1920-webcam_clip.h)
+    if crop_webcam:
+        cropped_webcam = crop_webcam(video_clip)
+        webcam_clip = resize(cropped_webcam, width=1080)
+        webcam_clip.set_position(0, 1920-webcam_clip.h)
 
     # Create a semi-transparent watermark text diagonally across the inner clip
     # watermark_text = TextClip(channel_name, fontsize=40, color='white', bg_color='transparent', stroke_width=1)
     # watermark_text = watermark_text.set_position(("center", 1600)).set_duration(video_clip.duration)
 
-    # Combine the black bar, centered clip, and text into a final composite clip
-    final_clip = CompositeVideoClip([
+    all_clips = [
         black_bar,
         background_clip,
         centered_clip,
-        credentials,
-        webcam_clip
-        # watermark_text
-    ])
+        credentials
+    ]
+    if webcam_clip:
+        all_clips.append(webcam_clip)
+    final_clip = CompositeVideoClip(all_clips)
 
-    # Write the final clip to a new video file
     final_clip.write_videofile(
         output_path,
         codec='libx264',
@@ -89,5 +89,5 @@ def convert_clips() -> int:
             set_error(clip.id)
             continue
         print(f'Converting {clip.id}...')
-        convert_to_vertical(clip)
+        convert_to_vertical(clip, False)
     return len(_clips)
