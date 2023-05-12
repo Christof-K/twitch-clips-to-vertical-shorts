@@ -3,25 +3,17 @@ import os
 from typing import List, NamedTuple
 from dotenv import load_dotenv
 import requests
-from storage.mongo_connector import TWITCH_TOKENS
+from storage.mongo_connector import TWITCH_BROADCASTERS, TWITCH_TOKENS
 load_dotenv();
 
 CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 MAX_CLIPS_PER_REQUEST = 100
 
 class Broadcaster(NamedTuple):
-  broadcaster_language: str
-  broadcaster_login: str
-  display_name: str
-  game_id: str
-  game_name: str
   id: str
-  is_live: bool
-  tag_ids: List[str]
-  tags: List[str]
-  thumbnail_url: str
-  title: str
-  started_at: str
+  lang: str
+  login: str
+  display_name: str
 
 def call_api(url, headers, params):
     response = requests.get(url, headers=headers, params=params)
@@ -100,15 +92,41 @@ def get_clips_page(broadcaster_id=None, game_id=None, after=None):
     response = call_api(url, get_headers(), params)
     return parse_response(response);
 
-# todo: db stored
+# todo: refactor
 def get_broadcaster(login: str) -> Broadcaster|None:
-    url = "https://api.twitch.tv/helix/search/channels"
-    response = call_api(url, get_headers(), {"query": login})
-    result = parse_response(response)
-    broadcaster = None
-    for caster_data in result["data"]:
-        if caster_data["broadcaster_login"] == login:
-            broadcaster = Broadcaster(**caster_data)
-            break
+    caster_data = get_caster_by_login(login)
+    if not caster_data:
+        url = "https://api.twitch.tv/helix/search/channels"
+        response = call_api(url, get_headers(), {"query": login})
+        result = parse_response(response)
+        broadcaster = None
+        for caster_data in result["data"]:
+            if caster_data["broadcaster_login"] == login:
+                broadcaster = Broadcaster(
+                    id = caster_data["id"],
+                    lang = caster_data["broadcaster_language"],
+                    login = caster_data["broadcaster_login"],
+                    display_name = caster_data["display_name"]
+                )
+                store_caster(broadcaster)
+                break
+    else:
+        broadcaster = Broadcaster(
+            id = caster_data["id"],
+            lang = caster_data["lang"],
+            login = caster_data["login"],
+            display_name = caster_data["display_name"]
+        )
     return broadcaster;
 
+
+def get_caster_by_login(login: str):
+    return TWITCH_BROADCASTERS.find_one({"login": login})
+
+def store_caster(caster: Broadcaster):
+    TWITCH_BROADCASTERS.insert_one({
+        "id": caster.id,
+        'lang': caster.lang,
+        "login": caster.login,
+        "display_name": caster.display_name,
+    })

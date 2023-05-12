@@ -16,6 +16,7 @@ def get_caster_coords(clip: VideoFileClip) -> None|List[int]:
     clip.save_frame(frame_image, t=5)
 
     ppl_coords = get_people_coords(frame_image)
+
     #skip tiny face
     # todo: if > 40% of the screen skip
 
@@ -24,7 +25,9 @@ def get_caster_coords(clip: VideoFileClip) -> None|List[int]:
         x,y,x1,y1 = tuple(p)
         # todo: relative to clip size
         if (x1 - x) < 200 : continue
+        # if (x1 - x) < 200 : continue
         if (y1 - y) < 200 : continue
+        # if (y1 - y) > 200 : continue
         filtered_ppl.append(p)
 
     if len(filtered_ppl) > 1 or not filtered_ppl : return None;

@@ -20,8 +20,8 @@ def convert_to_vertical(clip: Clip, _crop_webcam=False): #todo: source depends o
     video_clip = VideoFileClip(clip.download_path, target_resolution=(607, 1080))
     all_clips = []
     duration = video_clip.duration
-    if duration > 59.0:
-        duration = 59.0 # yt shorts safe
+    if duration > 58.0:
+        duration = 58.0 # yt shorts safe
         video_clip.set_duration(duration)
     black_bar = ColorClip((1080, 1920), color=[0, 0, 0], duration=duration)
     all_clips.append(black_bar)
@@ -95,4 +95,5 @@ def convert_clips() -> int:
             continue
         print(f'Converting {clip.id}...')
         convert_to_vertical(clip, True)
+        print(f"Converted! \n\t{clip.title}\n\t{clip.broadcaster_name}\n\t{clip.duration}\n")
     return len(_clips)
