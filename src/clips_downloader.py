@@ -95,11 +95,11 @@ def handle_clips(clips, limit):
 
 def download_clips() -> int:
 
-    # for game_id in get_games():
-    #     print(f"fetching clips from game \"{game_id}\"")
-    #     clips = get_game_clips(game_id)
-    #     if clips:
-    #         handle_clips(clips, CLIPS_PER_GAME)
+    for game_id in get_games():
+        print(f"fetching clips from game \"{game_id}\"")
+        clips = get_game_clips(game_id)
+        if clips:
+            handle_clips(clips, CLIPS_PER_GAME)
 
 
     for broadcaster in get_broadcasters():

@@ -88,14 +88,13 @@ def upload_clip(clip: Clip):
         part="snippet,status",
         body={
             "snippet": {
-                # "notifySubscribers"
-                "title": clip.title,
-                # "tags": [clip.broadcaster_name, "shorts", "twitch", "clips"],
-                # "defaultLanguage": clip.language,
-                # "categoryId":
+                "title": f"{clip.title}",
+                "description": "#shorts",
+                "tags": [clip.broadcaster_name]
+                # "categoryId": 42
             },
             "status": {
-                "privacyStatus": "public",
+                "privacyStatus": "private", #"public",
                 "selfDeclaredMadeForKids": False,
                 "license": "youtube"
             }

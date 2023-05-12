@@ -7,6 +7,4 @@ def get_games() -> List[str]:
       509672, # travel, outdor
       417752, # talk shows, podcasts
       509663, # special events
-      509669  # Beauty & Body Art
-      # 116747788 # e-girls
     ]

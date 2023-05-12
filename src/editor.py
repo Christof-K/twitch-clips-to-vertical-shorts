@@ -13,9 +13,10 @@ def get_caster_coords(clip: VideoFileClip) -> None|List[int]:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     temp_dir = os.path.abspath(os.path.join(script_dir, '..', 'temp'))
     frame_image = os.path.join(temp_dir, 'webcam_serach_frame.png')
-    clip.save_frame(frame_image, t=5)
+    clip.save_frame(frame_image, t=1)
 
     ppl_coords = get_people_coords(frame_image)
+    # return ppl_coords[0]
 
     #skip tiny face
     # todo: if > 40% of the screen skip
