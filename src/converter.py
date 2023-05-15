@@ -15,7 +15,7 @@ max_height = 1080
 
 def convert_to_vertical(clip: Clip, _crop_webcam=False): #todo: source depends of category try to detect ppl or not
 
-    output_path = os.path.join(converted_folder, f"{clip.broadcaster_name} {clip.title}_{clip.id}.mp4")
+    output_path = os.path.join(converted_folder, f"{clip.id}.mp4")
     audio_output = os.path.join(temp_folder, f'sound_vertical_{clip.id}.mp4')
     video_clip = VideoFileClip(clip.download_path, target_resolution=(607, 1080))
     all_clips = []
