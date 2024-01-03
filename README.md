@@ -1,4 +1,4 @@
-# Twitch clips -> shorts "smart" conversion
+# Twitch clips to vertical shorts "smart" conversion
 
 Downloading twitch.tv clips based on config (views count treshhold, selected channels, selected categories)
 Converting 16:9 to 9:16 (vertical) video - shorts format (eg. tiktok)
